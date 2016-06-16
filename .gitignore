@@ -1,0 +1,9 @@
+# IntelliJ project files
+.idea
+releases/darwin/*
+!releases/darwin/index.html
+releases/win32/*
+!releases/win32/index.html
+dumps/*
+node_modules
+.DS_Store
