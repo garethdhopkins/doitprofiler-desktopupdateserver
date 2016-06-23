@@ -16,7 +16,8 @@ app.use(require('connect-busboy')());
 app.get('/updates/latest', (req, res) => {
     const clientVersion = req.query.v;
     const platform = req.query.p || 'darwin';
-    const latest = getLatestRelease(platform,clientVersion);
+    const arch = req.query.a || 'x64';
+    const latest = getLatestRelease(platform,clientVersion,arch);
     if(clientVersion === latest){
         res.status(204).end();
     }else{
@@ -82,8 +83,7 @@ app.post('/crashReporter',bodyParser.urlencoded({ extended: false }),(req, res) 
     return req.pipe(req.busboy);
 });
 
-let getLatestRelease = (platform, version) => {
-    platform = platform || 'darwin';
+let getLatestRelease = (platform, version, arch) => {
     const dir = path.resolve(__dirname,'releases',platform);
 
     if(platform == 'darwin'){
@@ -92,7 +92,7 @@ let getLatestRelease = (platform, version) => {
             return fs.statSync(filePath).isDirectory();
         }).reverse()[0];
     }
-    const filename = path.join(dir,'RELEASES');
+    const filename = path.join(dir,arch,'RELEASES');
     if(!fs.existsSync(filename)) return version;
     return fs.readFileSync(filename,'utf8','r').split("\n").reverse()[0].split(' ')[1].replace(/^([a-zA-z]+-)(([0-9]+(\.)?)+)(-full\.nupkg)$/,"$2");
 };
