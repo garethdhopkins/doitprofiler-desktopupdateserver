@@ -5,7 +5,8 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "start": "PORT=8080 PROD=1 node index.js",
+    "start": "node index.js",
+    "prodlocal": "PORT=8080 PROD=1 node index.js",
     "dev": "PORT=3333 nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
