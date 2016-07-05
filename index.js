@@ -6,13 +6,29 @@ const app = express();
 const packageJSON = require('./package.json');
 const minidump = require('minidump');
 const bodyParser = require('body-parser');
-const PORT = parseInt(process.env.PORT);
+const PROD = process.env.PROD || 1;
+const PORT = process.env.PORT || 8080;
 
 app.use(require('morgan')('dev'));
 
 app.use('/updates/releases', express.static(path.join(__dirname, 'releases')));
 app.use(require('connect-busboy')());
 
+let getBaseUrl = () => {
+    return (PROD ? packageJSON.productionURL : 'http://localhost')+((PORT && (parseInt(PORT) > 0)) ? ':'+PORT : '');
+};
+let sendError = (res, error) => {
+    res.set('Content-Type', 'text/html');
+    res.send('<h1 style="color:#a00;text-align:center;">Sorry, an ERROR occured</h1><small style="color:#eb0000;"><pre>'+error+'</pre></small>');
+};
+
+app.get('/info', (req, res) => {
+    res.json({ 
+        productionUrl : `${packageJSON.productionURL}`, 
+        port : `${PORT}`, 
+        baseUrl : `${getBaseUrl()}`
+    });
+});
 app.get('/updates/latest', (req, res) => {
     const clientVersion = req.query.v;
     const platform = req.query.p || 'darwin';
@@ -95,14 +111,6 @@ let getLatestRelease = (platform, version, arch) => {
     const filename = path.join(dir,arch,'RELEASES');
     if(!fs.existsSync(filename)) return version;
     return fs.readFileSync(filename,'utf8','r').split("\n").reverse()[0].split(' ')[1].replace(/^([a-zA-z]+-)(([0-9]+(\.)?)+)(-full\.nupkg)$/,"$2");
-};
-
-let getBaseUrl = () => {
-    return (process.env.PROD ? packageJSON.productionURL : 'http://localhost')+(PORT ? ':'+PORT : '');
-};
-let sendError = (res, error) => {
-    res.set('Content-Type', 'text/html');
-    res.send('<h1 style="color:#a00;text-align:center;">Sorry, an ERROR occured</h1><small style="color:#eb0000;"><pre>'+error+'</pre></small>');
 };
 
 app.listen(PORT, () => {

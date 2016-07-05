@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node index.js",
     "prodlocal": "PORT=8080 PROD=1 node index.js",
-    "dev": "PORT=3333 nodemon index.js",
+    "dev": "PORT=3333 PROD=0 nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -25,5 +25,5 @@
     "nodemon": "^1.9.2"
   },
   "zipFilename": "DoITProfilerDesktopApp",
-  "productionURL": "http://here-goes-production-host.adress"
+  "productionURL": "http://desktopupdateserver.doitprofiler.net"
 }
