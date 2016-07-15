@@ -1,5 +1,6 @@
 'use strict';
 const fs = require('fs');
+const fsU = require('nodejs-fs-utils');
 const path = require('path');
 const express = require('express');
 const app = express();
@@ -21,7 +22,77 @@ let sendError = (res, error) => {
     res.set('Content-Type', 'text/html');
     res.send('<h1 style="color:#a00;text-align:center;">Sorry, an ERROR occured</h1><small style="color:#eb0000;"><pre>'+error+'</pre></small>');
 };
+let formatSize = size => {
+    let out = size;
+    let level = -1;
+    while(out / 1000 > 0){
+        out = Math.floor(out / 1000);
+        ++level;
+    }
+    out = Math.floor(size / Math.pow(10,level*3));
+    switch(level){
+        case 0: return out+" B";
+        case 1: return out+" KB";
+        case 2: return out+" MB";
+        case 3: return out+" GB";
+        default: return size+" B";
+    }
+};
+let getPlatform = fname => {
+    switch(fname.replace(/(^.+)(\.[^.]+$)/,"$2")){
+        case ".exe":
+            let arch = fname.match(/(x64)|(ia32)/) ? fname.match(/(x64)/) ? " - 64 bits" : " - 32 bits" : "";
+            return "Windows"+arch;
+        case ".app": return "Mac OSX";
+        default: return "&nbsp;";
+    }
+};
 
+app.get('/download',(req,res)=>{
+    let fileName = req.query.f;
+    let filePath = path.resolve(__dirname,'releases','download',fileName || '.');
+    if(fileName && path.basename(filePath) == fileName)
+        return res.download(filePath);
+    // res.setHeader('Content-disposition', 'attachment; filename='+fileName);
+    // var filestream = fs.createReadStream(filePath);
+    // filestream.pipe(res);
+    let dir = path.resolve(__dirname,'releases','download');
+    fs.readdir(dir,(err,files)=>{
+        if(err) return sendError(res,err);
+        let filteredFiles = files.filter((file) => {
+            const fp = path.join(filePath, file);
+            return !file.match(/^\./);
+        });
+        let page = "<h1>Files to download</h1>\n";
+        page += filteredFiles.length ?
+            "<h4>Chose a file to download</h4>\n<table>\n\t<tr><th>Filename</th><th>Size</th><th>Last modified date</th><th>Platform</th><th>&nbsp;</th></tr>" :
+            "<h4>No files do download</h4>\n";
+        filteredFiles.forEach(file=>{
+            let stats = fs.statSync(path.join(dir,file));
+            let size = stats.isDirectory() ? fsU.fsizeSync(path.join(dir,file)) : stats.size;
+            page += "\t<tr>\n";
+            page += "\t\t<td>"+file+"</td>\n";
+            page += "\t\t<td>"+formatSize(size)+"</td>\n";
+            page += "\t\t<td>"+stats.mtime.toLocaleDateString()+" "+stats.mtime.toLocaleTimeString()+"</td>\n";
+            page += "\t\t<td>"+getPlatform(file)+"</td>\n";
+            page += "\t\t<td>\n";
+            page += "\t\t\t<form method=\"GET\">\n";
+            page += "\t\t\t\t<input type='submit' value='Download' class='btn btn-success' />\n";
+            page += "\t\t\t\t<input type='hidden' value='"+file+"' name='f' />\n";
+            page += "\t\t\t</form>\n";
+            page += "\t\t</td>\n";
+            page += "\t</tr>\n";
+        });
+        page += filteredFiles.length ? "</table>\n" : "";
+        res.set('Content-Type', 'text/html');
+
+
+        fs.readFile(path.resolve(__dirname,'download.html'), function (err, content) {
+            if(err) return sendError(res,err);
+            return res.send(content.toString().replace('#page#', page));
+        });
+    });
+});
 app.get('/info', (req, res) => {
     res.json({ 
         productionUrl : `${packageJSON.productionURL}`, 
@@ -106,7 +177,7 @@ let getLatestRelease = (platform, version, arch) => {
         return fs.readdirSync(dir).filter((file) => {
             const filePath = path.join(dir, file);
             return fs.statSync(filePath).isDirectory();
-        }).reverse()[0];
+        }).reverse()[0] || version;
     }
     const filename = path.join(dir,arch,'RELEASES');
     if(!fs.existsSync(filename)) return version;
