@@ -3,6 +3,8 @@ const fs = require('fs');
 const fsU = require('nodejs-fs-utils');
 const path = require('path');
 const express = require('express');
+const http = require('http');
+const https = require('https');
 const app = express();
 const packageJSON = require('./package.json');
 const minidump = require('minidump');
@@ -49,10 +51,16 @@ let getPlatform = fname => {
 };
 
 app.get('/download',(req,res)=>{
+
+    getFileContent('http://localhost:3333/updates/latest')
+        .then(r => console.log(JSON.stringify(JSON.parse(r),null,4)))
+        .catch(e => console.error(JSON.stringify(e,null,4)));
+
     let fileName = req.query.f;
     let filePath = path.resolve(__dirname,'releases','download',fileName || '.');
     if(fileName && path.basename(filePath) == fileName)
         return res.download(filePath);
+
     // res.setHeader('Content-disposition', 'attachment; filename='+fileName);
     // var filestream = fs.createReadStream(filePath);
     // filestream.pipe(res);
@@ -182,6 +190,19 @@ let getLatestRelease = (platform, version, arch) => {
     const filename = path.join(dir,arch,'RELEASES');
     if(!fs.existsSync(filename)) return version;
     return fs.readFileSync(filename,'utf8','r').split("\n").reverse()[0].split(' ')[1].replace(/^([a-zA-z]+-)(([0-9]+(\.)?)+)(-full\.nupkg)$/,"$2");
+};
+let getFileContent = fileAddress => {
+    console.log('reading '+fileAddress);
+    return new Promise((success, error) => {
+        (fileAddress.match(/^https/) ? https : http).get(fileAddress, res => {
+            let myBuff = '';
+            res.setEncoding('utf8').on('data', d => myBuff += d);
+            res.on('end',() => success(myBuff));
+        }).on('error', e => {
+            console.log(`Got error: ${e.message}`);
+            error(e);
+        });
+    });
 };
 
 app.listen(PORT, () => {
