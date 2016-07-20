@@ -17,12 +17,11 @@
     "connect-busboy": "0.0.2",
     "express": "^4.13.4",
     "minidump": "^0.9.0",
-    "morgan": "^1.7.0",
-    "nodejs-fs-utils": "^1.0.26"
+    "morgan": "^1.7.0"
   },
   "devDependencies": {
     "nodemon": "^1.9.2"
   },
   "zipFilename": "DoITProfilerDesktopApp",
-  "productionURL": "http://desktopupdateserver.doitprofiler.net"
+  "productionURL": "http://apps.doitprofiler.net/desktop"
 }
