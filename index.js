@@ -54,7 +54,9 @@ let createFilesTable = (res, message) => {
                 page += "\t\t<td>\n";
                 page += "\t\t\t<form method=\"GET\">\n";
                 page += "\t\t\t\t<input type='submit' value='Download' class='btn btn-success' />\n";
-                page += "\t\t\t\t<input type='hidden' value='"+file.fileName+"' name='f' />\n";
+                let val = file.fileUrl ? encodeURIComponent(file.fileUrl) : file.filePath || file.fileName;
+                let name = file.fileUrl ? "u" : file.filePath ? "p" : "f";
+                page += "\t\t\t\t<input type='hidden' value='"+val+"' name='"+name+"' />\n";
                 page += "\t\t\t</form>\n";
                 page += "\t\t</td>\n";
                 page += "\t</tr>\n";
@@ -71,10 +73,14 @@ let createFilesTable = (res, message) => {
 
 app.get('/download',(req,res)=>{
     let fileName = req.query.f;
-    if(fileName){
+    let filePath = req.query.p;
+    let fileUrl = req.query.u ? decodeURIComponent(req.query.u) : null;
+    if(fileName || filePath || fileUrl){
         // return getFileContent(getFilesBaseUrl()+"/"+fileName,res,fileName)
         //     .then(null,e => createFilesTable(res,e)).catch(e => createFilesTable(res,`ERROR: ${e}`));
-        return res.redirect(getFilesBaseUrl()+"/"+fileName);
+        console.log(fileUrl, fileName, filePath);
+        console.log(fileUrl || (getFilesBaseUrl()+"/"+(fileName || filePath)));
+        return res.redirect(fileUrl || (getFilesBaseUrl()+"/"+(fileName || filePath)));
     }
     createFilesTable(res);
 });
