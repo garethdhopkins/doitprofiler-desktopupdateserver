@@ -42,10 +42,10 @@ let createFilesTable = (res, message) => {
         .then(content => {
             let page = "<h1>Files to download</h1>\n";
             page += content.downloads.length ?
-                "<h4>Chose a file to download</h4>\n<table>\n\t<tr><th>Filename</th><th>Size</th><th>Last modified date</th><th>Platform</th><th>&nbsp;</th></tr>" :
+                "<h4>Chose a file to download</h4>\n<table>\n\t<tr><th>Filename</th><th>Size</th><th>Release date</th><th>Platform</th><th>&nbsp;</th></tr>" :
                 "<h4>No files do download</h4>\n";
             content.downloads.forEach(file => {
-                let lm = new Date(file.lastModified);
+                let lm = new Date(file.released);
                 page += "\t<tr>\n";
                 page += "\t\t<td>"+file.fileName+"</td>\n";
                 page += "\t\t<td>"+file.size+"</td>\n";
