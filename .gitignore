@@ -6,6 +6,8 @@ releases/win32/ia32/*
 releases/win32/x64/*
 !releases/win32/ia32/index.html
 !releases/win32/x64/index.html
+releases/download/*
+!releases/download/.keepFolderInRepo
 dumps/*
 node_modules
 .DS_Store

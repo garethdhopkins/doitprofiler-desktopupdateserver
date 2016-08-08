@@ -16,14 +16,12 @@
     "body-parser": "^1.15.1",
     "connect-busboy": "0.0.2",
     "express": "^4.13.4",
-    "fs": "0.0.2",
     "minidump": "^0.9.0",
-    "morgan": "^1.7.0",
-    "path": "^0.12.7"
+    "morgan": "^1.7.0"
   },
   "devDependencies": {
     "nodemon": "^1.9.2"
   },
   "zipFilename": "DoITProfilerDesktopApp",
-  "productionURL": "http://desktopupdateserver.doitprofiler.net"
+  "productionURL": "http://apps.doitprofiler.net/desktop"
 }
