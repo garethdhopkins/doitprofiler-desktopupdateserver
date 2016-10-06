@@ -7,18 +7,20 @@ const https = require('https');
 const stream = require('stream');
 const app = express();
 const packageJSON = require('./package.json');
+const products = packageJSON.products;
 const minidump = require('minidump');
 const bodyParser = require('body-parser');
-const PROD = process.env.PROD || 1;
-const PORT = process.env.PORT || 8080;
+const PROD = typeof process.env.PROD !== 'undefined' ? process.env.PROD.trim() : 1;
+const PORT = process.env.PORT ? process.env.PORT.trim() : 8080;
 
 app.use(require('morgan')('dev'));
 
 app.use('/updates/releases', express.static(path.join(__dirname, 'releases')));
 app.use(require('connect-busboy')());
 
-let getFilesBaseUrl = () => {
-    return PROD ? packageJSON.productionURL : 'http://localhost'+((PORT && (parseInt(PORT) > 0)) ? ':'+PORT : '');
+let getFilesBaseUrl = (prodName) => {
+    var urlFragment = products[prodName || 'Do-ITProfilerDesktopApp'].path;
+    return PROD != '0' ? packageJSON.productionURL+urlFragment : 'http://localhost'+((PORT && (parseInt(PORT) > 0)) ? ':'+PORT : '')+'/updates/releases'+urlFragment;
 };
 let sendError = (res, error) => {
     res.set('Content-Type', 'text/html');
@@ -28,13 +30,15 @@ let createLatestResponse = (req, res, qres) => {
     const clientVersion = req.query.v;
     const platform = req.query.p || 'darwin';
     const arch = req.query.a || 'x64';
+    const prodName = req.query.pn;
     const latest = qres.latest || qres;
     if(clientVersion === latest){
         res.status(204).end();
     }else{
         platform == 'darwin' ?
-            res.json({ url : qres.url || `${getFilesBaseUrl()}/darwin/${latest}/${packageJSON.zipFilename}.zip` }) :
-            res.json({ url : `${getFilesBaseUrl()}/win32/${arch}` })
+            // TODO: if ever start releasing darvin files then do something about it or it will always return one filename only
+            res.json({ url : qres.url || `${getFilesBaseUrl(prodName)}/darwin/${latest}/${products[prodName].zipFilename}` }) :
+            res.json({ url : `${getFilesBaseUrl(prodName)}/win32/${arch}` })
     }
 };
 let createFilesTable = (res, message) => {
@@ -76,18 +80,14 @@ app.get('/download',(req,res)=>{
     let fileName = req.query.f;
     let filePath = req.query.p;
     let fileUrl = req.query.u ? decodeURIComponent(req.query.u) : null;
-    if(fileName || filePath || fileUrl){
-        // return getFileContent(getFilesBaseUrl()+"/"+fileName,res,fileName)
-        //     .then(null,e => createFilesTable(res,e)).catch(e => createFilesTable(res,`ERROR: ${e}`));
-        console.log(fileUrl, fileName, filePath);
-        console.log(fileUrl || (getFilesBaseUrl()+"/"+(fileName || filePath)));
+    if(fileName || filePath || fileUrl)
         return res.redirect(fileUrl || (getFilesBaseUrl()+"/"+(fileName || filePath)));
-    }
     createFilesTable(res);
 });
 app.get('/info', (req, res) => {
     res.json({ 
-        productionUrl : `${packageJSON.productionURL}`, 
+        productionUrl : `${packageJSON.productionURL}`,
+        prod : `${PROD}`,
         port : `${PORT}`, 
         baseUrl : `${getFilesBaseUrl()}`
     });
@@ -95,12 +95,13 @@ app.get('/info', (req, res) => {
 app.get('/updates/latest', (req, res) => {
     const platform = req.query.p || 'darwin';
     const arch = req.query.a || 'x64';
+    const prodName = req.query.pn;
     if(platform == 'darwin'){
-        return getFileContent(getFilesBaseUrl()+"/darwin/latest")
+        return getFileContent(getFilesBaseUrl(prodName)+"/darwin/latest")
             .then(latest => createLatestResponse(req,res,latest), e => res.status(404).end())
             .catch(e => res.status(404).end());
     }
-    getFileContent(getFilesBaseUrl()+"/win32/"+arch+"/RELEASES")
+    getFileContent(getFilesBaseUrl(prodName)+"/win32/"+arch+"/RELEASES")
         .then(content => createLatestResponse(req,res,content.split("\n").reverse()[0].split(' ')[1].replace(/^([a-zA-z]+-)(([0-9]+(\.)?)+)(-full\.nupkg)$/,"$2")), e => res.status(404).end())
         .catch(e => res.status(404).end());
 });

@@ -6,8 +6,8 @@
   "private": true,
   "scripts": {
     "start": "node index.js",
-    "prodlocal": "PORT=8080 PROD=1 node index.js",
-    "dev": "PORT=3333 PROD=0 nodemon index.js",
+    "prodlocal": "set PORT=8080 && set PROD=1 && node index.js",
+    "dev": "set PROD=0 && nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -22,6 +22,15 @@
   "devDependencies": {
     "nodemon": "^1.9.2"
   },
-  "zipFilename": "DoITProfilerDesktopApp",
-  "productionURL": "http://apps.doitprofiler.net/desktop"
+  "productionURL": "http://apps.doitprofiler.net",
+  "products": {
+    "Do-ITProfilerDesktopApp": {
+      "zipFilename": "DoITProfilerDesktopApp.zip",
+      "path": "/desktop"
+    },
+    "Do-ITProfilerDesktopStats": {
+      "zipFilename": "DoITProfilerDesktopStats.zip",
+      "path": "/stats"
+    }
+  }
 }
