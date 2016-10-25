@@ -38,7 +38,7 @@ let createLatestResponse = (req, res, qres) => {
     }
 };
 let createFilesTable = (res, message) => {
-    getFileContent(getFilesBaseUrl()+'/desktop/files.json')
+    getFileContent(getFilesBaseUrl()+'/files.json')
         .then(content => {
             let page = "<h1>Files to download</h1>\n";
             page += content.downloads.length ?
