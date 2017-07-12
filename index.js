@@ -11,6 +11,7 @@ const minidump = require('minidump');
 const bodyParser = require('body-parser');
 const PROD = process.env.PROD || 1;
 const PORT = process.env.PORT || 8080;
+const betaReleasesDir = '/betaReleases';
 
 app.use(require('morgan')('dev'));
 
@@ -28,13 +29,14 @@ let createLatestResponse = (req, res, qres) => {
     const clientVersion = req.query.v;
     const platform = req.query.p || 'darwin';
     const arch = req.query.a || 'x64';
+    const beta = req.query.bata ? betaReleasesDir : '';
     const latest = qres.latest || qres;
     if(clientVersion === latest){
         res.status(204).end();
     }else{
         platform == 'darwin' ?
-            res.json({ url : qres.url || `${getFilesBaseUrl()}/darwin/${latest}/${packageJSON.zipFilename}.zip` }) :
-            res.json({ url : `${getFilesBaseUrl()}/win32/${arch}` })
+            res.json({ url : qres.url || `${getFilesBaseUrl()}/darwin/${beta}${latest}/${packageJSON.zipFilename}.zip` }) :
+            res.json({ url : `${getFilesBaseUrl()}/win32/${arch}${beta}` })
     }
 };
 let createFilesTable = (res, message) => {
@@ -95,12 +97,13 @@ app.get('/info', (req, res) => {
 app.get('/updates/latest', (req, res) => {
     const platform = req.query.p || 'darwin';
     const arch = req.query.a || 'x64';
+    const beta = req.query.bata ? betaReleasesDir : '';
     if(platform == 'darwin'){
-        return getFileContent(getFilesBaseUrl()+"/darwin/latest")
+        return getFileContent(getFilesBaseUrl()+"/darwin"+beta+"/latest")
             .then(latest => createLatestResponse(req,res,latest), e => res.status(404).end())
             .catch(e => res.status(404).end());
     }
-    getFileContent(getFilesBaseUrl()+"/win32/"+arch+"/RELEASES")
+    getFileContent(getFilesBaseUrl()+"/win32/"+arch+beta+"/RELEASES")
         .then(content => createLatestResponse(req,res,content.split("\n").reverse()[0].split(' ')[1].replace(/^([a-zA-z]+-)(([0-9]+(\.)?)+)(-full\.nupkg)$/,"$2")), e => res.status(404).end())
         .catch(e => res.status(404).end());
 });
