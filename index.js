@@ -29,7 +29,7 @@ let createLatestResponse = (req, res, qres) => {
     const clientVersion = req.query.v;
     const platform = req.query.p || 'darwin';
     const arch = req.query.a || 'x64';
-    const beta = req.query.bata ? betaReleasesDir : '';
+    const beta = req.query.beta ? betaReleasesDir : '';
     const latest = qres.latest || qres;
     if(clientVersion === latest){
         res.status(204).end();
@@ -97,7 +97,7 @@ app.get('/info', (req, res) => {
 app.get('/updates/latest', (req, res) => {
     const platform = req.query.p || 'darwin';
     const arch = req.query.a || 'x64';
-    const beta = req.query.bata ? betaReleasesDir : '';
+    const beta = req.query.beta ? betaReleasesDir : '';
     if(platform == 'darwin'){
         return getFileContent(getFilesBaseUrl()+"/darwin"+beta+"/latest")
             .then(latest => createLatestResponse(req,res,latest), e => res.status(404).end())
